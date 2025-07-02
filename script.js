@@ -17,7 +17,6 @@ window.addEventListener('DOMContentLoaded', () => {
         currentTime: document.getElementById('current-time'),
         duration: document.getElementById('duration'),
         bgCanvas: document.getElementById('background-canvas'),
-        contentWrapper: document.querySelector('.content-wrapper'),
         filterBtn: document.getElementById('filter-btn'),
         filterSidebar: document.getElementById('filter-sidebar'),
         filterTags: document.getElementById('filter-tags'),
@@ -60,6 +59,10 @@ window.addEventListener('DOMContentLoaded', () => {
         countdownHours: document.getElementById('hours'),
         countdownMinutes: document.getElementById('minutes'),
         countdownSeconds: document.getElementById('seconds'),
+        // Элементы контента плеера для скрытия/показа
+        contentWrapper: document.querySelector('.content-wrapper'),
+        progressBarContainer: document.querySelector('.progress-bar-container'),
+        volumeContainer: document.querySelector('.volume-container'),
     };
 
     let allBeats = [], currentPlaylist = [], currentTrackIndex = -1, isSwitching = false, particles = [], isClearingCache = false;
@@ -70,7 +73,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let currentVizModeIndex = 0, currentThemeIndex = 0;
     let effectiveBinCount;
     let allowPreview = true;
-    let countdownInterval = null; // Для хранения ID интервала таймера
+    let countdownInterval = null;
     
     const audioBuffers = new Map();
 
@@ -95,25 +98,19 @@ window.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`beats_data.json?v=${Date.now()}`);
             allBeats = await response.json();
-            if (allBeats.length === 0) throw new Error('Список битов пуст.');
-
+            
             elements.body.className = themes[currentThemeIndex];
             elements.vizToggleBtn.dataset.tooltip = vizModes[currentVizModeIndex];
             populateFilterPanel();
             renderSideLists();
             
-            currentPlaylist = allBeats.filter(beat => !dislikedTracks.has(beat.file));
-            // --- ИСПРАВЛЕНИЕ: Перемешиваем при каждом запуске ---
-            currentPlaylist.sort(() => Math.random() - 0.5); 
+            updatePlaylist(); 
             
-            if (currentPlaylist.length > 0) {
-                 await loadTrack(0, false, 'none');
-                 showPlayer();
-            } else {
-                 showNoResults();
-            }
-             updateSliderProgress(elements.volumeSlider);
-        } catch (error) { showNoResults(error.message); }
+            updateSliderProgress(elements.volumeSlider);
+        } catch (error) { 
+            console.error(error);
+            showNoResults(error.message); 
+        }
         setupCanvas();
         animateBackground();
         await setupEventListeners();
@@ -168,55 +165,72 @@ window.addEventListener('DOMContentLoaded', () => {
         updateSliderProgress(elements.progressBar); updateLikeDislikeStatus();
     }
     
-    // --- ИСПРАВЛЕНИЕ: Логика обновления плейлиста с полным рандомом ---
     function updatePlaylist() {
         const currentlyPlayingTrack = !elements.player.paused && currentTrackIndex > -1 ? currentPlaylist[currentTrackIndex] : null;
 
-        // 1. Фильтруем биты по новым тегам
         let newFilteredPlaylist = allBeats
             .filter(beat => !dislikedTracks.has(beat.file))
             .filter(b => activeFilters.size === 0 || [...activeFilters].every(f => (b.hashtags || []).includes(f)));
 
-        // 2. СРАЗУ ЖЕ ПЕРЕМЕШИВАЕМ результат
         newFilteredPlaylist.sort(() => Math.random() - 0.5);
 
-        // 3. Обрабатываем играющий трек
         if (currentlyPlayingTrack) {
-            // Ищем его в новом (уже перемешанном) плейлисте
             const indexInNewPlaylist = newFilteredPlaylist.findIndex(t => t.file === currentlyPlayingTrack.file);
 
             if (indexInNewPlaylist !== -1) {
-                // Если он есть - удаляем его со случайной позиции...
                 newFilteredPlaylist.splice(indexInNewPlaylist, 1);
             }
-            // ... и всегда ставим в начало, чтобы он доиграл.
             newFilteredPlaylist.unshift(currentlyPlayingTrack);
         }
         
         currentPlaylist = newFilteredPlaylist;
         
-        if (currentlyPlayingTrack) {
-            // Индекс играющего трека теперь всегда 0
-            currentTrackIndex = 0; 
-        } else {
-            // Если ничего не играло и плейлист не пуст...
-            if(currentPlaylist.length > 0) {
-                 // ...загружаем первый (случайный) трек на паузе
-                 currentTrackIndex = 0;
-                 loadTrack(currentTrackIndex, false, 'none');
-                 showPlayer();
+        if (currentPlaylist.length > 0) {
+            showPlayer();
+            if (currentlyPlayingTrack) {
+                currentTrackIndex = 0; 
             } else {
-                // Если плейлист пуст, всё сбрасываем
-                currentTrackIndex = -1;
-                resetPlayerUI();
-                showNoResults();
+                 currentTrackIndex = -1;
+                 loadTrack(0, false, 'none');
             }
+        } else {
+             currentTrackIndex = -1;
+             resetPlayerUI();
+             showNoResults();
         }
+
         elements.filterBtn.classList.toggle('active', activeFilters.size > 0);
     }
 
-    function showNoResults() { elements.playerCore.style.display = 'none'; elements.noResults.style.display = 'flex'; }
-    function showPlayer() { elements.playerCore.style.display = 'flex'; elements.noResults.style.display = 'none'; }
+    // ИЗМЕНЕНИЕ: Функции теперь управляют видимостью, а не display: none
+    function showNoResults(message = 'Ничего не найдено') { 
+        elements.contentWrapper.style.visibility = 'hidden';
+        elements.contentWrapper.style.opacity = '0';
+        elements.progressBarContainer.style.visibility = 'hidden';
+        elements.progressBarContainer.style.opacity = '0';
+        elements.volumeContainer.style.visibility = 'hidden';
+        elements.volumeContainer.style.opacity = '0';
+        
+        elements.noResults.textContent = message;
+        elements.noResults.style.display = 'flex';
+        elements.noResults.style.visibility = 'visible';
+        elements.noResults.style.opacity = '1';
+    }
+    function showPlayer() { 
+        elements.contentWrapper.style.visibility = 'visible';
+        elements.contentWrapper.style.opacity = '1';
+        elements.progressBarContainer.style.visibility = 'visible';
+        elements.progressBarContainer.style.opacity = '1';
+        elements.volumeContainer.style.visibility = 'visible';
+        elements.volumeContainer.style.opacity = '1';
+
+        elements.noResults.style.visibility = 'hidden';
+        elements.noResults.style.opacity = '0';
+        // Убираем display:flex после завершения анимации исчезновения, чтобы не перехватывал клики
+        setTimeout(() => {
+            elements.noResults.style.display = 'none';
+        }, 300);
+    }
     
     async function loadAudioForEffect(trackData) {
         if (!audioContext || audioBuffers.has(trackData.file)) return;
@@ -239,10 +253,12 @@ window.addEventListener('DOMContentLoaded', () => {
         
         const outClass = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
         const inClass = direction === 'next' ? 'slide-in-right' : 'slide-in-left';
+        
+        showPlayer();
+
         if (direction !== 'none') elements.contentWrapper.classList.add(outClass);
 
         setTimeout(() => {
-            showPlayer();
             elements.coverArtContainer.style.boxShadow = 'none';
             elements.player.src = `mp3/${encodeURIComponent(trackData.file)}`;
             elements.title.textContent = trackData.title;
@@ -253,7 +269,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 elements.cover.onerror = () => { console.error("Ошибка загрузки обложки: " + elements.cover.src); elements.coverArtContainer.style.boxShadow = 'none'; };
             } else { elements.cover.src = ""; elements.coverArtContainer.style.boxShadow = 'none'; }
             elements.buyLinkSmall.href = trackData.buy_link || '#';
-            elements.buyLinkSmall.style.display = trackData.buy_link ? "block" : "none";
+            elements.buyLinkSmall.style.display = trackData.buy_link && trackData.buy_link !== "null" ? "block" : "none";
             elements.hashtags.innerHTML = "";
             (trackData.hashtags || []).forEach(tag => { const tagEl = document.createElement("span"); tagEl.className = "hashtag"; tagEl.textContent = tag; elements.hashtags.appendChild(tagEl); });
             updateLikeDislikeStatus();
@@ -381,8 +397,6 @@ window.addEventListener('DOMContentLoaded', () => {
         source.start();
     }
     
-    // --- НОВАЯ ЛОГИКА ДЛЯ ТАЙМЕРА ---
-
     async function getServerTime() {
         try {
             const response = await fetch('https://worldtimeapi.org/api/timezone/Europe/Moscow');
@@ -391,7 +405,7 @@ window.addEventListener('DOMContentLoaded', () => {
             return new Date(data.datetime);
         } catch (error) {
             console.error('Не удалось получить время с сервера, используется локальное время:', error);
-            return new Date(); // Фоллбэк на локальное время
+            return new Date();
         }
     }
 
@@ -409,10 +423,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
             if (now < serviceStartDate) {
                 targetDate = serviceStartDate;
-                message = "До пропажи floxx. осталось:";
+                message = "До начала службы floxx. осталось:";
             } else if (now >= serviceStartDate && now < serviceEndDate) {
                 targetDate = serviceEndDate;
-                message = "До возвращения floxx. осталось:";
+                message = "До возвращения floxx. с армии осталось:";
             } else {
                 message = "floxx. вернулся!";
                 elements.countdownMessage.textContent = message;
@@ -424,9 +438,8 @@ window.addEventListener('DOMContentLoaded', () => {
             const diff = targetDate.getTime() - now.getTime();
 
             if (diff <= 0) {
-                // Если время вышло, перезапускаем таймер, чтобы он переключился на следующую фазу
                 clearInterval(countdownInterval);
-                setupCountdown(); // Рекурсивно вызываем для обновления фазы
+                setupCountdown();
                 return;
             }
             
@@ -462,9 +475,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- КОНЕЦ ЛОГИКИ ТАЙМЕРА ---
-
-
     async function setupEventListeners() {
         const showNextPreview = () => { if (!allowPreview) return; const nextIndex = (currentTrackIndex + 1); if (nextIndex < currentPlaylist.length) { updateSidePreview(elements.nextTrackPreview, currentPlaylist[nextIndex]); } };
         const showPrevPreview = () => { if (!allowPreview) return; const prevIndex = (currentTrackIndex - 1); if (prevIndex >= 0) { updateSidePreview(elements.prevTrackPreview, currentPlaylist[prevIndex]); }};
@@ -472,12 +482,11 @@ window.addEventListener('DOMContentLoaded', () => {
         const playTrackAction = async (playFn) => { if (isSwitching) return; allowPreview = false; hideAllPreviews(); await playFn(); setTimeout(() => { allowPreview = true; }, 100); };
         
         const playNext = async () => {
-            // Берём следующий трек из УЖЕ отфильтрованного и перемешанного списка.
             const nextIndex = currentTrackIndex + 1;
             if (nextIndex < currentPlaylist.length) {
                 await loadTrack(nextIndex, true, 'next');
             } else {
-                resetPlayerUI(); showNoResults();
+                 updatePlaylist(); 
             }
         };
         const playPrev = async () => {
@@ -534,22 +543,20 @@ window.addEventListener('DOMContentLoaded', () => {
         
         elements.filterBtn.onclick = () => { elements.filterSidebar.classList.toggle('visible'); elements.playerContainer.classList.toggle('sidebar-visible'); };
         
-        // --- ИЗМЕНЕНИЯ ДЛЯ МОДАЛКИ С ТАЙМЕРОМ ---
         elements.authorLogo.onclick = () => {
             elements.modalOverlay.classList.add('visible');
-            setupCountdown(); // Запускаем таймер при открытии
+            setupCountdown();
         };
         elements.closeModalBtn.onclick = () => {
             elements.modalOverlay.classList.remove('visible');
-            stopCountdown(); // Останавливаем таймер при закрытии
+            stopCountdown();
         };
         elements.modalOverlay.onclick = (e) => {
             if (e.target === elements.modalOverlay) {
                 elements.modalOverlay.classList.remove('visible');
-                stopCountdown(); // Останавливаем таймер при закрытии
+                stopCountdown();
             }
         };
-        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
         
         elements.clearCacheBtn.onclick = () => { isClearingCache = true; localStorage.removeItem('floxxPlayerState'); location.reload(); };
         
@@ -574,8 +581,8 @@ window.addEventListener('DOMContentLoaded', () => {
             dislikedTracks.add(currentFile);
             if(likedTracks.has(currentFile)) likedTracks.delete(currentFile);
             triggerListUpdateAnimation(elements.dislikedListPanel, false);
-            updatePlaylist(); // Обновляем плейлист (исключаем трек)
-            if(wasPlaying) await playTrackAction(playNext); // и включаем следующий
+            updatePlaylist(); 
+            if(wasPlaying && currentPlaylist.length > 0) await playTrackAction(playNext);
             renderSideLists(); updateLikeDislikeStatus(); saveState();
         };
         

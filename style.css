@@ -62,7 +62,6 @@ body {
     filter: blur(0.5px);
 }
 
-/* --- ИСПРАВЛЕНИЕ: Позиция плеера --- */
 .site-wrapper {
     display: flex;
     justify-content: center;
@@ -70,7 +69,6 @@ body {
     width: 100%;
     min-height: 100vh;
     box-sizing: border-box;
-    /* Отступ сверху, чтобы плеер не прилипал к навбару */
     padding-top: 80px; 
     padding-bottom: 20px;
 }
@@ -126,7 +124,7 @@ body.light-theme #author-logo { filter: invert(1); }
     position: relative; 
 }
 
-.player-wrapper { position: relative; width: 340px; height: 620px; display: flex; overflow: hidden; border-radius: 12px; }
+.player-wrapper { position: relative; width: 340px; height: 620px; display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; }
 #filter-sidebar { position: absolute; left: 0; top: 0; width: 200px; height: 100%; background: var(--sidebar-bg); transform: translateX(-100%); transition: transform var(--anim-duration) ease-in-out; padding: 20px; box-sizing: border-box; z-index: 2; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
 #filter-sidebar.visible { transform: translateX(0); }
 
@@ -161,10 +159,40 @@ body.light-theme #author-logo { filter: invert(1); }
 
 .player-container { position: absolute; top: 0; left: 0; display: flex; flex-direction: column; width: 100%; height: 100%; box-sizing: border-box; transition: transform var(--anim-duration) ease-in-out; z-index: 1; }
 .player-container.sidebar-visible { transform: translateX(200px); }
-#player-core { flex-grow: 1; display: flex; flex-direction: column; align-items: center; width: 100%; justify-content: flex-start; }
-.no-results-message { margin: auto; text-align: center; font-size: 1.5em; font-weight: 500; color: var(--text-tertiary); padding: 20px; display: none; }
 
-.content-wrapper { width: 100%; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px 20px 0 20px; box-sizing: border-box; position: relative; }
+/* ИЗМЕНЕНИЕ: #player-core теперь position: relative, чтобы содержать .no-results */
+#player-core { 
+    flex-grow: 1; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    width: 100%; 
+    justify-content: flex-start;
+    position: relative; 
+}
+/* ИЗМЕНЕНИЕ: стили для .no-results-message, делаем его наложением */
+.no-results-message { 
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    text-align: center; 
+    font-size: 1.5em; 
+    font-weight: 500; 
+    color: var(--text-tertiary); 
+    padding: 20px;
+    box-sizing: border-box;
+    display: none; /* JS будет управлять этим */
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.content-wrapper { width: 100%; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px 20px 0 20px; box-sizing: border-box; position: relative; transition: visibility 0.3s, opacity 0.3s; }
 @keyframes slide-out-left { to { transform: translateX(-110%); opacity: 0; } }
 @keyframes slide-in-right { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes slide-out-right { to { transform: translateX(110%); opacity: 0; } }
@@ -191,8 +219,7 @@ body.light-theme #author-logo { filter: invert(1); }
 
 .hashtags-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 15px; min-height: 20px; }
 .hashtag { background-color: var(--element-hover-bg); color: var(--text-secondary); padding: 3px 8px; border-radius: 5px; font-size: 0.8em; }
-.progress-bar-container, .volume-container { display: flex; width: 100%; align-items: center; gap: 10px; margin: 5px 0; padding: 0 20px; box-sizing: border-box; }
-.progress-bar-container span, .volume-container span { color: var(--text-secondary); }
+.progress-bar-container, .volume-container { display: flex; width: 100%; align-items: center; gap: 10px; margin: 5px 0; padding: 0 20px; box-sizing: border-box; transition: visibility 0.3s, opacity 0.3s; }
 input[type="range"] { flex-grow: 1; -webkit-appearance: none; background: transparent; margin: 0; height: 15px; --progress-percent: 0%; }
 input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; border-radius: 2px; background: linear-gradient(to right, var(--slider-thumb-bg) var(--progress-percent), var(--slider-track-bg) 0); }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 15px; width: 15px; border-radius: 50%; background: var(--slider-thumb-bg); cursor: pointer; margin-top: -5.5px; border: none; }
@@ -278,10 +305,9 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 15
 
 
 @media (max-width: 1100px) {
-    /* ИСПРАВЛЕНО: Задаем отступы, чтобы контент не перекрывался навбарами */
     .site-wrapper {
-        padding-top: 70px;
-        padding-bottom: 85px; /* Добавляем отступ снизу, чтобы плеер не перекрывался футером */
+        height: 100dvh; 
+        padding: 75px 0; 
     }
 
     .main-content {
@@ -290,7 +316,6 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 15
     .side-list-toggle {
         display: none;
     }
-    /* --- ИСПРАВЛЕНИЕ: Анимация для мобильных панелей --- */
     .side-list { 
         display: flex;
         position: fixed;
@@ -302,14 +327,12 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 15
         border-radius: 0;
         backdrop-filter: blur(20px);
         background: rgba(18, 18, 18, 0.95);
-        /* Скрытое состояние */
         opacity: 0;
         transform: scale(1.05);
         pointer-events: none;
         transition: opacity 0.3s ease, transform 0.3s ease;
      }
     .side-list.visible {
-        /* Видимое состояние */
         opacity: 1;
         transform: scale(1);
         pointer-events: auto;
@@ -444,4 +467,53 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 15
     .nav-center { justify-content: flex-start; }
     .nav-left { flex: 0; }
     #author-logo { margin-left: 10px; }
+}
+
+/* --- АДАПТАЦИЯ ДЛЯ МАЛЕНЬКИХ ЭКРАНОВ (iPhone SE и т.п.) --- */
+@media (max-height: 700px) and (max-width: 400px) {
+    .player-wrapper {
+        height: auto;
+        min-height: 500px; /* Добавлено минимальное значение высоты, чтобы плеер не схлопывался */
+    }
+    #cover-art {
+        width: 220px;
+        height: 220px;
+    }
+    .pause-overlay .material-icons {
+        font-size: 60px;
+    }
+    .content-wrapper {
+        padding-top: 15px;
+    }
+    #cover-art-container {
+        margin-bottom: 10px;
+    }
+    #track-title {
+        margin: 5px 0;
+        font-size: 1.2em;
+    }
+    .hashtags-container {
+        margin-bottom: 10px;
+    }
+    .progress-bar-container, .volume-container {
+        margin: 2px 0;
+    }
+    .footer-controls {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .control-btn {
+        width: 50px;
+        height: 50px;
+    }
+    .control-btn .material-icons {
+        font-size: 28px;
+    }
+    #play-pause-btn {
+        width: 55px;
+        height: 55px;
+    }
+    #play-pause-btn .material-icons {
+        font-size: 32px;
+    }
 }
