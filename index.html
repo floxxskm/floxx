@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>floxx. beatstore</title>
+    <link rel="icon" href="logo.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <canvas id="background-canvas"></canvas>
+
+    <div class="site-wrapper">
+        <div id="disliked-list" class="side-list left">
+            <div id="disliked-list-toggle" class="side-list-toggle">
+                <span class="material-icons">remove_circle_outline</span>
+                <span id="disliked-count" class="side-list-count">0</span>
+            </div>
+            <h3 class="side-list-header">Не понравилось</h3>
+            <button class="side-list-close-btn material-icons">close</button>
+            <div class="side-list-content"></div>
+        </div>
+
+        <main class="main-content">
+            <div class="player-area">
+                <div id="similar-track-preview" class="side-preview similar"></div>
+                <div id="prev-track-preview" class="side-preview prev"></div>
+                <div id="next-track-preview" class="side-preview next"></div>
+                <div class="player-wrapper">
+                    <div id="filter-sidebar" class="filter-sidebar">
+                        <div class="tag-search-wrapper">
+                            <span class="tag-search-icon">#</span>
+                            <input type="text" id="tag-search-input" placeholder="Поиск по тегам...">
+                        </div>
+                        <div id="selected-tags-container" class="selected-tags-container"></div>
+                        <div id="filter-tags" class="filter-tags"></div>
+                    </div>
+                    <div id="player-container" class="player-container">
+                        <div id="player-core">
+                            <div class="content-wrapper">
+                                <div id="cover-art-container">
+                                    <img id="cover-art" src="" alt="Обложка">
+                                    <div class="pause-overlay"><span class="material-icons">pause</span></div>
+                                </div>
+                                <div class="title-wrapper">
+                                    <h1 id="track-title">Загрузка...</h1>
+                                    <a id="buy-link-small" class="buy-button-small" href="#" target="_blank">✧</a>
+                                </div>
+                                <div id="hashtags-container" class="hashtags-container"></div>
+                            </div>
+                            <div class="progress-bar-container">
+                                <span id="current-time">0:00</span>
+                                <input type="range" id="progress-bar" value="0" step="1">
+                                <span id="duration">0:00</span>
+                            </div>
+                            <div class="volume-container">
+                                 <button id="dislike-btn" class="control-btn-small"><span class="material-icons">remove</span></button>
+                                <span class="material-icons">volume_down</span>
+                                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
+                                <span class="material-icons">volume_up</span>
+                                <button id="like-btn" class="control-btn-small"><span class="material-icons">add</span></button>
+                            </div>
+                        </div>
+                        <div id="no-results" class="no-results-message">Ничего не найдено</div>
+                        <div class="footer-controls">
+                            <div class="main-controls">
+                                <button id="filter-btn" class="utility-btn"><span class="material-icons">tune</span></button>
+                                <div class="playback-controls">
+                                    <button id="prev-btn" class="control-btn"><span class="material-icons">skip_previous</span></button>
+                                    <button id="play-pause-btn" class="control-btn"><span class="material-icons">play_arrow</span></button>
+                                    <button id="next-btn" class="control-btn"><span class="material-icons">skip_next</span></button>
+                                </div>
+                                <button id="similar-track-btn" class="utility-btn"><span class="material-icons">auto_awesome</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div id="liked-list" class="side-list right">
+             <div id="liked-list-toggle" class="side-list-toggle">
+                <span class="material-icons">add_circle_outline</span>
+                 <span id="liked-count" class="side-list-count">0</span>
+            </div>
+            <h3 class="side-list-header">Понравилось</h3>
+             <button class="side-list-close-btn material-icons">close</button>
+            <div class="side-list-content"></div>
+        </div>
+    </div>
+    
+    <nav class="header-nav">
+        <div class="nav-section nav-left">
+            <button id="theme-toggle-btn" class="utility-btn-header"><span class="material-icons">brightness_6</span></button>
+            <button id="viz-toggle-btn" class="utility-btn-header" data-tooltip="particles"><span class="material-icons">grain</span></button>
+        </div>
+        <div class="nav-section nav-center">
+            <img src="floxx.png" id="author-logo" alt="Сообщение от автора">
+        </div>
+        <div class="nav-section nav-right">
+            <a href="https://www.youtube.com/@floxx." target="_blank">YouTube</a>
+            <a href="https://t.me/unifloxx" target="_blank">Telegram</a>
+            <a href="https://t.me/beatchainbot/beatchain?startapp=profile697150601" target="_blank">Beatchain</a>
+        </div>
+    </nav>
+    
+    <nav class="footer-nav">
+        <div class="footer-links">
+            <button id="show-disliked-btn" class="footer-nav-btn"><span class="material-icons">remove_circle_outline</span></button>
+            <button id="show-links-btn" class="footer-nav-btn"><span class="material-icons">link</span></button>
+            <button id="show-liked-btn" class="footer-nav-btn"><span class="material-icons">add_circle_outline</span></button>
+        </div>
+    </nav>
+    
+     <div id="links-modal-overlay" class="modal-overlay mobile-only">
+        <div class="links-modal-content">
+            <button id="close-links-modal-btn" class="modal-close-button material-icons">close</button>
+            <a href="https://www.youtube.com/@floxx." target="_blank" class="link-button">YouTube</a>
+            <a href="https://t.me/unifloxx" target="_blank" class="link-button">Telegram</a>
+            <a href="https://t.me/beatchainbot/beatchain?startapp=profile697150601" target="_blank" class="link-button">Beatchain</a>
+        </div>
+    </div>
+
+    <div id="author-modal-overlay" class="modal-overlay">
+        <div id="author-modal" class="modal-content">
+            <h3>Сообщение от floxx.</h3>
+            <p>Это твоя площадка для творчества! Оставь здесь свое послание. Расскажи, что этот сайт — твое наследие на время службы. Укажи примерную дату возвращения, чтобы люди ждали. Этот текст — просто заглушка.</p>
+            <p>Удачи тебе!</p>
+            <div class="modal-buttons">
+                 <button id="clear-cache-btn">Очистить кеш</button>
+                 <button id="close-modal-btn">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-player" crossorigin="anonymous"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
