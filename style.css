@@ -267,6 +267,16 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 15
 .footer-nav a, .footer-nav-btn { color: var(--text-secondary); text-decoration: none; font-size: 1em; font-weight: 500; transition: color 0.2s; background: none; border: none; cursor: pointer; padding: 10px; }
 .footer-nav a:hover, .footer-nav-btn:hover { color: var(--text-primary); }
 
+/* --- СТИЛИ ДЛЯ ТАЙМЕРА В МОДАЛКЕ --- */
+#countdown-container { text-align: center; padding: 10px 0; }
+#countdown-message { color: var(--text-secondary); margin: 0 0 15px 0; font-size: 0.9em; }
+#countdown-timer { display: flex; justify-content: center; gap: 15px; font-family: 'Roboto Mono', monospace; }
+.time-unit { display: flex; flex-direction: column; align-items: center; background: var(--element-bg); padding: 10px; border-radius: 8px; min-width: 60px; border: 1px solid var(--element-border); }
+.time-unit span { font-size: 2em; font-weight: 700; color: var(--text-primary); }
+.time-unit small { font-size: 0.7em; color: var(--text-tertiary); text-transform: uppercase; }
+/* --- КОНЕЦ СТИЛЕЙ ДЛЯ ТАЙМЕРА --- */
+
+
 @media (max-width: 1100px) {
     /* ИСПРАВЛЕНО: Задаем отступы, чтобы контент не перекрывался навбарами */
     .site-wrapper {

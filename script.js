@@ -52,6 +52,14 @@ window.addEventListener('DOMContentLoaded', () => {
         linksModalOverlay: document.getElementById('links-modal-overlay'),
         closeLinksModalBtn: document.getElementById('close-links-modal-btn'),
         sideListCloseBtns: document.querySelectorAll('.side-list-close-btn'),
+        // Элементы для таймера
+        countdownContainer: document.getElementById('countdown-container'),
+        countdownMessage: document.getElementById('countdown-message'),
+        countdownTimer: document.getElementById('countdown-timer'),
+        countdownDays: document.getElementById('days'),
+        countdownHours: document.getElementById('hours'),
+        countdownMinutes: document.getElementById('minutes'),
+        countdownSeconds: document.getElementById('seconds'),
     };
 
     let allBeats = [], currentPlaylist = [], currentTrackIndex = -1, isSwitching = false, particles = [], isClearingCache = false;
@@ -62,6 +70,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let currentVizModeIndex = 0, currentThemeIndex = 0;
     let effectiveBinCount;
     let allowPreview = true;
+    let countdownInterval = null; // Для хранения ID интервала таймера
     
     const audioBuffers = new Map();
 
@@ -371,6 +380,89 @@ window.addEventListener('DOMContentLoaded', () => {
         source.connect(reverb).connect(gainNode).connect(audioContext.destination);
         source.start();
     }
+    
+    // --- НОВАЯ ЛОГИКА ДЛЯ ТАЙМЕРА ---
+
+    async function getServerTime() {
+        try {
+            const response = await fetch('https://worldtimeapi.org/api/timezone/Europe/Moscow');
+            if (!response.ok) throw new Error('Network response was not ok.');
+            const data = await response.json();
+            return new Date(data.datetime);
+        } catch (error) {
+            console.error('Не удалось получить время с сервера, используется локальное время:', error);
+            return new Date(); // Фоллбэк на локальное время
+        }
+    }
+
+    function startCountdown(serverNow) {
+        const serviceStartDate = new Date('2025-07-03T06:00:00+03:00');
+        const serviceEndDate = new Date('2026-07-03T06:00:00+03:00');
+        const timeOffset = serverNow.getTime() - Date.now();
+
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        countdownInterval = setInterval(() => {
+            const now = new Date(Date.now() + timeOffset);
+            let targetDate;
+            let message;
+
+            if (now < serviceStartDate) {
+                targetDate = serviceStartDate;
+                message = "До пропажи floxx. осталось:";
+            } else if (now >= serviceStartDate && now < serviceEndDate) {
+                targetDate = serviceEndDate;
+                message = "До возвращения floxx. осталось:";
+            } else {
+                message = "floxx. вернулся!";
+                elements.countdownMessage.textContent = message;
+                elements.countdownTimer.style.display = 'none';
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            const diff = targetDate.getTime() - now.getTime();
+
+            if (diff <= 0) {
+                // Если время вышло, перезапускаем таймер, чтобы он переключился на следующую фазу
+                clearInterval(countdownInterval);
+                setupCountdown(); // Рекурсивно вызываем для обновления фазы
+                return;
+            }
+            
+            elements.countdownMessage.textContent = message;
+            elements.countdownTimer.style.display = 'flex';
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            elements.countdownDays.textContent = String(days).padStart(2, '0');
+            elements.countdownHours.textContent = String(hours).padStart(2, '0');
+            elements.countdownMinutes.textContent = String(minutes).padStart(2, '0');
+            elements.countdownSeconds.textContent = String(seconds).padStart(2, '0');
+
+        }, 1000);
+    }
+
+    async function setupCountdown() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        elements.countdownMessage.textContent = 'Получение точного времени...';
+        elements.countdownTimer.style.display = 'none';
+        
+        const serverTime = await getServerTime();
+        startCountdown(serverTime);
+    }
+    
+    function stopCountdown() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+    }
+
+    // --- КОНЕЦ ЛОГИКИ ТАЙМЕРА ---
 
 
     async function setupEventListeners() {
@@ -441,10 +533,25 @@ window.addEventListener('DOMContentLoaded', () => {
         elements.volumeSlider.addEventListener('change', handleVolumeChange);
         
         elements.filterBtn.onclick = () => { elements.filterSidebar.classList.toggle('visible'); elements.playerContainer.classList.toggle('sidebar-visible'); };
-        elements.authorLogo.onclick = () => elements.modalOverlay.classList.add('visible');
-        elements.closeModalBtn.onclick = () => elements.modalOverlay.classList.remove('visible');
+        
+        // --- ИЗМЕНЕНИЯ ДЛЯ МОДАЛКИ С ТАЙМЕРОМ ---
+        elements.authorLogo.onclick = () => {
+            elements.modalOverlay.classList.add('visible');
+            setupCountdown(); // Запускаем таймер при открытии
+        };
+        elements.closeModalBtn.onclick = () => {
+            elements.modalOverlay.classList.remove('visible');
+            stopCountdown(); // Останавливаем таймер при закрытии
+        };
+        elements.modalOverlay.onclick = (e) => {
+            if (e.target === elements.modalOverlay) {
+                elements.modalOverlay.classList.remove('visible');
+                stopCountdown(); // Останавливаем таймер при закрытии
+            }
+        };
+        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+        
         elements.clearCacheBtn.onclick = () => { isClearingCache = true; localStorage.removeItem('floxxPlayerState'); location.reload(); };
-        elements.modalOverlay.onclick = (e) => { if (e.target === elements.modalOverlay) elements.modalOverlay.classList.remove('visible'); };
         
         elements.themeToggleBtn.onclick = () => { currentThemeIndex = (currentThemeIndex + 1) % themes.length; elements.body.className = themes[currentThemeIndex]; };
         elements.vizToggleBtn.onclick = () => { currentVizModeIndex = (currentVizModeIndex + 1) % vizModes.length; elements.vizToggleBtn.dataset.tooltip = vizModes[currentVizModeIndex]; };

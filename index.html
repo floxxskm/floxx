@@ -126,8 +126,27 @@
     <div id="author-modal-overlay" class="modal-overlay">
         <div id="author-modal" class="modal-content">
             <h3>Сообщение от floxx.</h3>
-            <p>Это твоя площадка для творчества! Оставь здесь свое послание. Расскажи, что этот сайт — твое наследие на время службы. Укажи примерную дату возвращения, чтобы люди ждали. Этот текст — просто заглушка.</p>
-            <p>Удачи тебе!</p>
+            <div id="countdown-container">
+                <p id="countdown-message">Загрузка времени...</p>
+                <div id="countdown-timer">
+                    <div class="time-unit">
+                        <span id="days">00</span>
+                        <small>дней</small>
+                    </div>
+                    <div class="time-unit">
+                        <span id="hours">00</span>
+                        <small>часов</small>
+                    </div>
+                    <div class="time-unit">
+                        <span id="minutes">00</span>
+                        <small>минут</small>
+                    </div>
+                    <div class="time-unit">
+                        <span id="seconds">00</span>
+                        <small>секунд</small>
+                    </div>
+                </div>
+            </div>
             <div class="modal-buttons">
                  <button id="clear-cache-btn">Очистить кеш</button>
                  <button id="close-modal-btn">Закрыть</button>
