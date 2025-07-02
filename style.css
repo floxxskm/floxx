@@ -268,9 +268,10 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 15
 .footer-nav a:hover, .footer-nav-btn:hover { color: var(--text-primary); }
 
 @media (max-width: 1100px) {
-    /* Отступ убран, чтобы не конфликтовать с позицией плеера на мобильных */
+    /* ИСПРАВЛЕНО: Задаем отступы, чтобы контент не перекрывался навбарами */
     .site-wrapper {
-        padding-top: 70px; 
+        padding-top: 70px;
+        padding-bottom: 85px; /* Добавляем отступ снизу, чтобы плеер не перекрывался футером */
     }
 
     .main-content {
