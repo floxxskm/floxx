@@ -160,7 +160,6 @@ body.light-theme #author-logo { filter: invert(1); }
 .player-container { position: absolute; top: 0; left: 0; display: flex; flex-direction: column; width: 100%; height: 100%; box-sizing: border-box; transition: transform var(--anim-duration) ease-in-out; z-index: 1; }
 .player-container.sidebar-visible { transform: translateX(200px); }
 
-/* ИЗМЕНЕНИЕ: #player-core теперь position: relative, чтобы содержать .no-results */
 #player-core { 
     flex-grow: 1; 
     display: flex; 
@@ -170,7 +169,7 @@ body.light-theme #author-logo { filter: invert(1); }
     justify-content: flex-start;
     position: relative; 
 }
-/* ИЗМЕНЕНИЕ: стили для .no-results-message, делаем его наложением */
+
 .no-results-message { 
     position: absolute;
     top: 0;
@@ -184,7 +183,7 @@ body.light-theme #author-logo { filter: invert(1); }
     color: var(--text-tertiary); 
     padding: 20px;
     box-sizing: border-box;
-    display: none; /* JS будет управлять этим */
+    display: none;
     align-items: center;
     justify-content: center;
     opacity: 0;
@@ -305,9 +304,15 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 15
 
 
 @media (max-width: 1100px) {
+    /* ИЗМЕНЕНИЕ: Новая, более надёжная логика центрирования */
     .site-wrapper {
-        height: 100dvh; 
-        padding: 75px 0; 
+        height: 100dvh;
+        /* box-sizing нужен, чтобы padding вычитался из высоты, а не добавлялся к ней */
+        box-sizing: border-box; 
+        /* Отступ сверху равен высоте хедера (~61px), добавляем запас */
+        padding-top: 65px; 
+        /* Отступ снизу равен высоте футера (~65px), добавляем запас */
+        padding-bottom: 70px; 
     }
 
     .main-content {
@@ -469,39 +474,39 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 15
     #author-logo { margin-left: 10px; }
 }
 
-/* --- АДАПТАЦИЯ ДЛЯ МАЛЕНЬКИХ ЭКРАНОВ (iPhone SE и т.п.) --- */
 @media (max-height: 700px) and (max-width: 400px) {
     .player-wrapper {
-        height: auto;
-        min-height: 500px; /* Добавлено минимальное значение высоты, чтобы плеер не схлопывался */
+        height: auto; 
+        min-height: 500px;
     }
     #cover-art {
-        width: 220px;
+        width: 220px; 
         height: 220px;
     }
     .pause-overlay .material-icons {
         font-size: 60px;
     }
     .content-wrapper {
-        padding-top: 15px;
+        padding-top: 15px; 
     }
     #cover-art-container {
-        margin-bottom: 10px;
+        margin-bottom: 10px; 
     }
     #track-title {
-        margin: 5px 0;
+        margin: 5px 0; 
         font-size: 1.2em;
     }
     .hashtags-container {
-        margin-bottom: 10px;
+        margin-bottom: 10px; 
     }
     .progress-bar-container, .volume-container {
-        margin: 2px 0;
+        margin: 2px 0; 
     }
     .footer-controls {
-        padding-top: 10px;
+        padding-top: 10px; 
         padding-bottom: 10px;
     }
+    
     .control-btn {
         width: 50px;
         height: 50px;
