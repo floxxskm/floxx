@@ -410,8 +410,8 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function startCountdown(serverNow) {
-        const serviceStartDate = new Date('2025-07-03T06:00:00+03:00');
-        const serviceEndDate = new Date('2026-07-03T06:00:00+03:00');
+        const serviceStartDate = new Date('2025-07-04T06:00:00+03:00');
+        const serviceEndDate = new Date('2026-07-04T06:00:00+03:00');
         const timeOffset = serverNow.getTime() - Date.now();
 
         if (countdownInterval) clearInterval(countdownInterval);
@@ -423,12 +423,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
             if (now < serviceStartDate) {
                 targetDate = serviceStartDate;
-                message = "До начала службы floxx. осталось:";
+                message = "vstany afk cherez:";
             } else if (now >= serviceStartDate && now < serviceEndDate) {
                 targetDate = serviceEndDate;
-                message = "До возвращения floxx. с армии осталось:";
+                message = "im always comeback";
             } else {
-                message = "floxx. вернулся!";
+                message = "floxx. doma :)";
                 elements.countdownMessage.textContent = message;
                 elements.countdownTimer.style.display = 'none';
                 clearInterval(countdownInterval);
